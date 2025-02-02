@@ -1,0 +1,94 @@
+Users Table
+
+CREATE TABLE Users (
+    User_ID VARCHAR(30) PRIMARY KEY NOT NULL,
+    Name VARCHAR(30) NOT NULL,
+    Email VARCHAR(50) UNIQUE NOT NULL,
+    Password VARCHAR(75) NOT NULL,
+    canModify BOOLEAN NOT NULL,
+    isBlocked BOOLEAN NOT NULL,
+    isDeleted BOOLEAN NOT NULL
+);
+
+LOAD DATA INFILE '/var/lib/mysql-files/user_information_DB.csv'
+INTO TABLE Users
+FIELDS TERMINATED BY ',' 
+ENCLOSED BY '"' 
+LINES TERMINATED BY '\n'
+IGNORE 1 ROWS;
+
+Quiz Table
+
+CREATE TABLE Quizzes (
+    Quiz_ID VARCHAR(30) PRIMARY KEY,
+    Name VARCHAR(30) NOT NULL,
+    isQuiz BOOLEAN NOT NULL,
+    User_ID VARCHAR(30),
+    FOREIGN KEY (User_ID) REFERENCES Users(User_ID)
+);
+
+LOAD DATA INFILE '/var/lib/mysql-files/quizzes.csv'
+INTO TABLE Quizzes
+FIELDS TERMINATED BY ',' 
+ENCLOSED BY '"' 
+LINES TERMINATED BY '\n'
+IGNORE 1 ROWS
+(Quiz_ID, Name, @isQuiz, User_ID)
+SET isQuiz = IF(@isQuiz = 'true', 1, 0);
+
+
+Question Table
+
+CREATE TABLE Questions (
+    Question_ID VARCHAR(30) PRIMARY KEY,
+    Description TEXT NOT NULL,
+    Quiz_ID VARCHAR(30),
+    FOREIGN KEY (Quiz_ID) REFERENCES Quizzes(Quiz_ID) ON DELETE CASCADE
+);
+
+LOAD DATA INFILE '/var/lib/mysql-files/questions.csv'
+INTO TABLE Questions
+FIELDS TERMINATED BY ',' 
+ENCLOSED BY '"' 
+LINES TERMINATED BY '\n'
+IGNORE 1 ROWS
+(Question_ID, Description, Quiz_ID);
+
+Option Table
+
+CREATE TABLE Options (
+    Option_ID VARCHAR(30) PRIMARY KEY,
+    Description TEXT NOT NULL,
+    isCorrect BOOLEAN NOT NULL,
+    Question_ID VARCHAR(30),
+    FOREIGN KEY (Question_ID) REFERENCES Questions(Question_ID)
+);
+
+LOAD DATA INFILE '/var/lib/mysql-files/options.csv'
+INTO TABLE Options
+FIELDS TERMINATED BY ',' 
+ENCLOSED BY '"' 
+LINES TERMINATED BY '\n'
+IGNORE 1 ROWS
+(Option_ID, Description, isCorrect, Question_ID);
+
+
+LOAD DATA INFILE '/var/lib/mysql-files/options.csv'
+INTO TABLE Options
+FIELDS TERMINATED BY ',' 
+ENCLOSED BY '"' 
+LINES TERMINATED BY '\n'
+IGNORE 1 ROWS
+(Option_ID, Description, @isCorrect, Question_ID)
+SET isCorrect = CASE 
+                   WHEN @isCorrect = 'true' THEN 1
+                   WHEN @isCorrect = 'false' THEN 0
+                   ELSE NULL 
+                 END;
+
+
+
+
+
+
+
